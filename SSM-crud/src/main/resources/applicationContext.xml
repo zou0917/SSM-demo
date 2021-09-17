@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mybatis-spring="http://mybatis.org/schema/mybatis-spring"
+       xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring.xsd http://www.springframework.org/schema/aop https://www.springframework.org/schema/aop/spring-aop.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+<!--扫描除了controller以外的所有组件、数据源、mabatis整合的配置、配置扫描器、事务控制、等等-->
+    <context:component-scan base-package="com.zw" >
+        <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+    </context:component-scan>
+<!--连接池配置-->
+    <context:property-placeholder location="classpath:dbConfig.properties"></context:property-placeholder>
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource">
+        <property name="driverClassName" value="${jdbc.driverClass}"></property>
+        <property name="url" value="${jdbc.url}"></property>
+        <property name="username" value="${jdbc.username}"></property>
+        <property name="password" value="${jdbc.password}"></property>
+    </bean>
+<!--    整合mybatis-->
+<!--        创建sqlSession的工厂-->
+    <bean class="org.mybatis.spring.SqlSessionFactoryBean" id="sessionFactory">
+<!--        配置数据源-->
+        <property name="dataSource" ref="dataSource"></property>
+<!--        配置mybatis配置文件位置-->
+        <property name="configLocation" value="classpath:mybatis.xml"></property>
+<!--        配置mapper文件的位置-->
+        <property name="mapperLocations" value="classpath:mapper/*.xml"></property>
+    </bean>
+<!--创建批量操作的sqlSession-->
+    <bean class="org.mybatis.spring.SqlSessionTemplate" id="batchSessionFactory">
+         <constructor-arg name="sqlSessionFactory" ref="sessionFactory"></constructor-arg>
+        <constructor-arg name="executorType" value="BATCH"></constructor-arg>
+    </bean>
+<!--    配置扫描器 扫描所有mapper接口的实现,让这些mapper能够自动注入-->
+<!--    <mybatis-spring:scan base-package="com.zw.crud"></mybatis-spring:scan>-->
+        <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+            <property name="basePackage" value="com.zw.crud"></property>
+        </bean>
+<!--    事务的配置-->
+    <bean class="org.springframework.jdbc.datasource.DataSourceTransactionManager" id="dataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"></property>
+    </bean>
+<!--使用aop，把service包下的所有方法都配置上事务-->
+    <aop:config>
+        <aop:pointcut id="txPoint" expression="execution(* com.zw.crud.service..*(..))"/>
+        <aop:advisor advice-ref="txAdvice" pointcut-ref="txPoint"></aop:advisor>
+    </aop:config>
+
+    <tx:advice id="txAdvice" transaction-manager="dataSourceTransactionManager">
+        <tx:attributes >
+            <tx:method name="*"/>
+            <tx:method name="get*" read-only="true"/>
+        </tx:attributes>
+    </tx:advice>
+
+
+</beans>

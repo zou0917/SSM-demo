@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+
+    <settings>
+<!--        开启驼峰命名自动匹配-->
+        <setting name="mapUnderscoreToCamelCase" value="true"/>
+<!--        解决Oracle other类型异常-->
+        <setting name="jdbcTypeForNull" value="NULL"/>
+<!--        开启二级缓存-->
+        <!--显式的指定每个我们需要更改的配置的值，即使他是默认的。防止版本更新带来的问题  -->
+        <setting name="cacheEnabled" value="true"/>
+<!--        开启懒加载-->
+        <setting name="lazyLoadingEnabled" value="true"/>
+        <setting name="aggressiveLazyLoading" value="false"/>
+    </settings>
+<!--    批量给类起别名-->
+    <typeAliases>
+        <package name="com.zw.crud.bean"/>
+    </typeAliases>
+
+    <plugins>
+        <plugin interceptor="com.github.pagehelper.PageHelper">
+            <property name="reasonable" value="true"/>
+        </plugin>
+    </plugins>
+    
+<!--给数据库起别名-->
+    <databaseIdProvider type="DB_VENDOR">
+        <property name="MySQL" value="mysql"/>
+        <property name="Oracle" value="oracle"/>
+        <property name="SQL Server" value="sqlserver"/>
+    </databaseIdProvider>
+
+</configuration>
